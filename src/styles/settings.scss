@@ -20,3 +20,16 @@ var {
   font-family: 'Roboto Mono', monospace !important;
   // font-family: 'Noto Sans Mono', monospace !important;
 }
+
+h1 {
+  line-height: 110%;
+}
+
+.v-btn {
+  text-transform: none;
+}
+
+.brand-button {
+  background: #0a0a0a;
+  color: #60ff7b !important;
+}

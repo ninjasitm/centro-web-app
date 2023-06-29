@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
 // import { components } from '../../plugins/vuetify';
-import HelloWorld from '../HelloWorld.vue';
+import HelloWorld from '../backup/HelloWorld.vue';
 
 describe('HelloWorld', () => {
   const wrapper = mount(HelloWorld, {
