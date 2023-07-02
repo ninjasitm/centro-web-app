@@ -22,8 +22,11 @@ const configStore = useConfig();
                 <router-view />
             </v-container>
         </v-main>
-        <v-footer class="mt-auto text-caption">
-            {{ new Date().getFullYear() }} — Centro Advertising, a company of Clean Ventures Inc.
+        <v-footer class="mt-auto mb-3 pt-5 text-caption px-6">
+            <div>
+                <hr class="mb-2" />
+                {{ new Date().getFullYear() }} — Centro Advertising, a company of Clean Ventures Inc.
+            </div>
         </v-footer>
     </v-layout>
 </template>
@@ -31,9 +34,18 @@ const configStore = useConfig();
 .v-footer {
     text-align: center;
     flex: 1 0 100%;
-    height: 40px;
+    height: 48px;
+    width: 100%;
     align-self: baseline;
-    font-size: 8px;
+    font-size: 8px !important;
     background-color: #F0F0F0;
+
+    div {
+        width: 100%;
+    }
+
+    hr {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.19);
+    }
 }
 </style>

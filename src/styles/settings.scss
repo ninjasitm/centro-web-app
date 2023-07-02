@@ -32,4 +32,10 @@ h1 {
 .brand-button {
   background: #0a0a0a;
   color: #60ff7b !important;
+
+  &.v-btn--disabled {
+    background: #f6f6f6;
+    color: #828282 !important;
+    opacity: 0.5;
+  }
 }

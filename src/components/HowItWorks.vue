@@ -1,19 +1,83 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
+import IconUp from '../assets/arrow-up.svg';
+import IconDown from '../assets/arrow-down.svg';
 
 const state = reactive({
     show: false,
-    icon: computed(() => state.show ? 'mdi-arrow-down' : 'mdi-arrow-up')
+    icon: computed(() => state.show ? IconDown : IconUp),
+    howItWorksItems: [
+        {
+            title: 'Bluetooth scanning',
+            description: 'Visit this link to open a new tab and enable “Experimental Web Platform Features”',
+            icon: 'mdi-bluetooth',
+        },
+        {
+            title: 'Driver login',
+            description: 'Use your WhatsApp number to login – an OTP will be sent via SMS to continue',
+            icon: 'mdi-cellphone'
+        },
+        {
+            title: 'Device permissions',
+            description: 'Grant access to your device’s GPS location and Bluetooth while you’re on this website',
+            icon: 'mdi-lock-open-outline'
+        },
+        {
+            title: 'Drive reach',
+            description: 'While you drive stay logged in and allow Google Chrome to run in the background for tracking',
+            icon: 'mdi-car'
+        }
+    ]
 });
 </script>
 <template>
-    <v-card id="how-it-works">
-        <v-card-title><v-btn
-                class="ml-4"
-                variant="flat"
-            >How it works <v-icon>{{ state.icon }}</v-icon></v-btn></v-card-title>
+    <v-card
+        id="how-it-works"
+        :class="{
+            'mb-4': true,
+            'elevation-0': true,
+            open: state.show
+        }"
+    >
+        <v-card-title class="text-center pt-6"><v-btn
+                size="x-large"
+                class="ml-4 text-h5 font-weight-black"
+                variant="plain"
+                @click="state.show = !state.show"
+            >How it works <v-img
+                    width="40"
+                    height="40"
+                    :class="{
+                        'ml-3': true,
+                        'open': state.show
+                    }"
+                    :src="IconUp"
+                ></v-img></v-btn></v-card-title>
         <v-card-text>
-            <p>Standard Audience Reach is in beta and can only be accessed on Android devices using Google Chrome</p>
+            <v-fade-transition>
+                <p v-show="!state.show">Standard Audience Reach is in beta and can only be accessed on Android devices using Google Chrome</p>
+            </v-fade-transition>
+            <v-fade-transition>
+                <v-list
+                    v-show="state.show"
+                    lines="three"
+                    class="bg-transparent"
+                >
+                    <v-list-item
+                        v-for="item in state.howItWorksItems"
+                        class="px-2"
+                        :key="item.title"
+                    >
+                        <v-list-item-title class="text-h6 font-weight-black mb-2">
+                            <v-icon>{{ item.icon }}</v-icon>
+                            {{ item.title }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                            <div v-html="item.description"></div>
+                        </v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+            </v-fade-transition>
         </v-card-text>
     </v-card>
 </template>
@@ -25,8 +89,36 @@ const state = reactive({
     right: 0;
     border-top-left-radius: 32px;
     border-top-right-radius: 32px;
-    ;
     transition: all 0.3s ease-in-out;
+    min-height: 1px;
     background-color: #F0F0F0;
+
+    &.open {
+        min-height: 508px;
+    }
+
+    .v-list {
+        .v-list-item {
+            color: #343434;
+            font-size: 12px;
+            font-family: Inter;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 150%;
+        }
+    }
+
+    .v-img {
+        background-color: #000;
+        color: #fff;
+        border-radius: 100px;
+        font-weight: 200 !important;
+        transition: all 0.3s ease-in-out;
+        // transform: rotate(45deg);
+
+        &.open {
+            transform: rotate(180deg);
+        }
+    }
 }
 </style>
