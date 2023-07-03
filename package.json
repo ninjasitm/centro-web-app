@@ -128,5 +128,13 @@
   },
   "stackblitz": {
     "startCommand": "yarn run test"
+  },
+  "workspaces": {
+    "packages": [
+      "src/*"
+    ],
+    "nohoist": [
+      "functions/**"
+    ]
   }
 }
