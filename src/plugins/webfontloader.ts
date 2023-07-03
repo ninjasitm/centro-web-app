@@ -29,6 +29,7 @@ export async function loadFonts(): Promise<void> {
           families: [
             'Roboto:100,300,400,500,700,900',
             'Roboto+Mono:100,300,400,500,700,900',
+            'Inter:100,300,400,500,700,900',
             /*
             // if you use Noto Sans, replace bellow lines.
             'Noto+Sans:100,300,400,500,700,900',

@@ -1,7 +1,9 @@
+
 import { defineStore } from 'pinia';
-import { axios } from '@/plugins/axios';
+
 import { useStore } from '@/composables/store';
 import { useGlobals } from '@/main';
+import { axios } from '@/plugins/axios';
 
 const storeHelper = useStore();
 
@@ -9,15 +11,13 @@ export const useAuthStore = defineStore('auth', {
 	state: () => {
 		let user: any = localStorage.getItem('user');
 		user =
-			typeof user === 'string' && user !== 'undefined'
-				? JSON.parse(user)
-				: {};
+			typeof user === 'string' && user !== 'undefined' ? JSON.parse(user) : {};
 		const loggedIn =
-			localStorage.getItem('access_token') !== undefined &&
-			user.id != null;
+			localStorage.getItem('access_token') !== undefined && user.id != null;
 		return {
 			loggedIn,
 			user,
+			loginDetails: {},
 			isLoading: true,
 		};
 	},
@@ -42,10 +42,7 @@ export const useAuthStore = defineStore('auth', {
 					$router.push(lastRoute);
 				}
 			} catch (error) {
-				console.debug(
-					'[Auth Store]: doInitialNavigation: Error',
-					error
-				);
+				console.debug('[Auth Store]: doInitialNavigation: Error', error);
 				$router.push({ name: 'Home' });
 			}
 		},
@@ -53,47 +50,34 @@ export const useAuthStore = defineStore('auth', {
 			const { $auth } = useGlobals();
 			$auth
 				.load()
-				.catch(() => {
+				.catch((e) => {
 					console.debug('[App]: Failed to load auth');
-					localStorage.removeItem('access_token');
+					console.error(e);
 				})
 				.then(() => {
-					if (localStorage.getItem('access_token')) {
-						$auth
-							.fetch()
-							.catch(() => {
-								console.debug(
-									'[App]: Failed to fetch auth ... logging out'
-								);
-								this.logout();
-							})
-							.then((result: any) => {
-								console.debug(
-									'[App]: Loaded auth',
-									result.data.data
-								);
-								this.setUser(result.data.data);
-								this.$state.loggedIn =
-									localStorage.getItem('access_token') !==
-									undefined;
-							})
-							.finally(() => {
-								this.$state.isLoading = false;
-							});
+					if (localStorage.getItem('onboarded') === 'true') {
+						const account = JSON.parse(localStorage.getItem('account'));
+						console.debug('[App]: Loaded auth', account);
+						this.setLogin('local_mode', account);
+						this.setLoginDetails(JSON.parse(localStorage.getItem('loginDetails')));
+						this.$state.loggedIn = true;
+						this.$state.isLoading = false;
 					} else {
+						localStorage.removeItem('onboarded');
+						localStorage.removeItem('account');
+						localStorage.removeItem('loginDetails');
+						localStorage.removeItem('campaignDetails');
 						this.$state.isLoading = false;
 					}
 				});
 		},
 		async register(params: any) {
 			try {
-				params.name =
-					params.name || `${params.first_name} ${params.last_name}`;
+				params.name = params.name || `${params.first_name} ${params.last_name}`;
 				const response = await axios().post('auth/register', params);
 				if (response) {
 					this.setLogin(
-						response.data.data.token ||
-							response.data.data.access_token,
+						response.data.data.token || response.data.data.access_token,
 						response.data.data.user
 					);
 					return this.$state.user;
@@ -103,6 +87,11 @@ export const useAuthStore = defineStore('auth', {
 			} catch (error) {
 				storeHelper.resolveError(error);
 			}
+		},
+		setLoginDetails(loginDetails: any) {
+			console.debug('[Auth Store]: setLoginDetails', loginDetails);
+			localStorage.setItem('loginDetails', JSON.stringify(loginDetails));
+			this.$state.loginDetails = loginDetails;
 		},
 		setUser(user: any) {
 			console.debug('[Auth Store]: setUser', user);
@@ -117,8 +106,7 @@ export const useAuthStore = defineStore('auth', {
 				const response = await axios().post('auth/login', credentials);
 				if (response) {
 					this.setLogin(
-						response.data.data.access_token ||
-							response.data.data.token,
+						response.data.data.access_token || response.data.data.token,
 						response.data.data.user
 					);
 					return response.data.data;
@@ -137,11 +125,7 @@ export const useAuthStore = defineStore('auth', {
 				this.$state.loggedIn = false;
 			}
 			$auth.token(null, params.access_token || params.token, false);
-			console.debug(
-				'[Auth Store]: Mocking user using',
-				params,
-				$auth.check()
-			);
+			console.debug('[Auth Store]: Mocking user using', params, $auth.check());
 		},
 		setLogin(token: string, user: any = null) {
 			console.debug('[Auth Store]: setLogin', token, user);
@@ -159,6 +143,10 @@ export const useAuthStore = defineStore('auth', {
 			const { $auth } = useGlobals();
 			localStorage.removeItem('access_token');
 			localStorage.removeItem('user');
+			localStorage.removeItem('onboarded');
+			localStorage.removeItem('account');
+			localStorage.removeItem('loginDetails');
+			localStorage.removeItem('campaignDetails');
 			$auth.logout();
 			this.$state.loggedIn = false;
 			console.log('[Auth]: Logged out');
@@ -166,10 +154,7 @@ export const useAuthStore = defineStore('auth', {
 		},
 		async recover(params: any) {
 			try {
-				const response = await axios().post(
-					'auth/forgot-password',
-					params
-				);
+				const response = await axios().post('auth/forgot-password', params);
 				return storeHelper.prepareResponse(response);
 			} catch (error) {
 				storeHelper.resolveError(error);
@@ -177,10 +162,7 @@ export const useAuthStore = defineStore('auth', {
 		},
 		async reset(params: any) {
 			try {
-				const response = await axios().put(
-					'auth/reset-password',
-					params
-				);
+				const response = await axios().put('auth/reset-password', params);
 				return storeHelper.prepareResponse(response);
 			} catch (error) {
 				storeHelper.resolveError(error);

@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { useGlobal, useConfig } from '@/store';
 import {
   computed,
-  nextTick,
   onMounted,
   ref,
   watch,
   type ComputedRef,
   type Ref,
-  type WritableComputedRef,
 } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useTheme } from 'vuetify';
 
-// Components
 import logo from '@/assets/logo.svg';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { useGlobals } from '@/main';
+import { useAuthStore } from '@/store/auth';
+import { useGlobal, useConfig } from '@/store/index';
 
 /** Vuetify Theme */
 const theme = useTheme();
@@ -25,6 +25,8 @@ const globalStore = useGlobal();
 
 /** Config Store */
 const configStore = useConfig();
+
+const $router = useRouter();
 
 /** Title */
 const title = import.meta.env.VITE_APP_TITLE ?? 'Vuetify3 Application';
@@ -57,14 +59,26 @@ const isDark: ComputedRef<string> = computed(() =>
 // When snackbar text has been set, show snackbar.
 watch(
   () => globalStore.message,
-  message => (snackbarVisibility.value = message !== '')
+  (message: string) => (snackbarVisibility.value = message !== '')
 );
 
 /** Clear store when snackbar hide */
-const onSnackbarChanged = async () => {
-  globalStore.setMessage();
-  await nextTick();
-};
+// const onSnackbarChanged = async () => {
+//   globalStore.setMessage();
+//   await nextTick();
+// };
+
+$router.isReady().then(async () => {
+
+  const authStore = useAuthStore();
+  // Fetch the logged in user
+  await authStore.load();
+  const { $auth } = useGlobals();
+  console.debug('[App]: Router is ready');
+  console.debug('[App]: Is Ready?', $auth.ready(), $auth.check());
+}).catch((err: Error) => {
+  console.error('[App]: Router is not ready', err);
+});
 
 onMounted(() => {
   document.title = title;

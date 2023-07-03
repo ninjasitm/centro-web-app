@@ -22,9 +22,8 @@ export default {
 			options: {
 				rolesKey: 'type',
 				notFoundRedirect: { name: 'Home' },
-				authRedirect: { name: 'Landing' },
+				authRedirect: { name: 'Login' },
 				fetchData: {
-					url: 'auth/me',
 					enabled: false,
 				},
 				refreshData: {

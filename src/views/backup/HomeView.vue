@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from '@/components/HelloWorld.vue';
+import HelloWorld from '@/components/backup/HelloWorld.vue';
 
 const jsonLd = JSON.stringify(
   {
@@ -26,9 +26,14 @@ const jsonLd = JSON.stringify(
       name="keyword"
       content="template,typescript,vue3,vuetify,vite,vite-template,volar"
     />
-    <meta name="description" content="Vite Vue3 Vuetify TypeScript Demo" />
-    <component :is="'script'" type="application/ld+json">
-      {{ jsonLd }}
-    </component>
-  </teleport>
-</template>
+    <meta
+      name="description"
+      content="Vite Vue3 Vuetify TypeScript Demo"
+    />
+    <component
+      :is="'script'"
+      type="application/ld+json"
+    >
+    {{ jsonLd }}
+  </component>
+</teleport></template>

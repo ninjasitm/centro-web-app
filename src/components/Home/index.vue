@@ -1,246 +1,113 @@
+<!-- eslint-disable import/first -->
+<script lang="ts">
+export default {
+    name: 'Home',
+    inheritAttrs: false,
+    customOptions: {},
+};
+</script>
 <script setup lang="ts">
-import Meta from '@/Meta';
-import { reactive, computed, onMounted } from 'vue';
-import { useVuelidate } from '@vuelidate/core'
-import { required, sameAs, helpers } from '@vuelidate/validators'
+import { reactive, onMounted } from 'vue';
+
+import 'mapbox-gl/dist/mapbox-gl.css'
+import 'v-mapbox/dist/v-mapbox.css';
+import Mapbox from "mapbox-gl";
+import {
+    VMap,
+    VControlGeolocate,
+    VControlNavigation
+} from "v-mapbox";
+import { useCampaignStore } from '@/store/campaign';
+import useGlobalStore from '@/store/GlobalStore';
 import HowItWorks from '../HowItWorks.vue';
 
-const title = import.meta.env.VITE_APP_TITLE;
+const campaignStore = useCampaignStore();
+const { onRequestBluetoothAccess, onRequestLocationAccess } = useGlobalStore();
+
 const state: any = reactive({
-    step: 0,
-    isLoading: false,
-    form: {
-        phone: null,
-        otp: null,
-        terms: false,
-        locationAccess: false,
-        bluetoothAccess: false
-    },
-    steps: [
-        {
-            title: "Let's make brand campaigns a success",
-            description: "We provide and generate Standard Audience Reach data for campaigns by utilizing our driver fleet’s location and device.",
-            rules: {
-                phone: {
-                    required: helpers.withMessage('A valid phone number is required', required)
-                },
-                terms: {
-                    sameAs: helpers.withMessage("You will need to agree to the terms and conditions to continue", sameAs(true))
-                }
-            }
-        },
-        {
-            title: "Verify phone",
-            description: computed(() => `A 6-digit-code was sent to ${state.form.phone}, enter it below to continue`),
-            rules: {
-                otp: {
-                    required: helpers.withMessage('A valid OTP is required', required)
-                }
-            }
-        },
-        {
-            title: "Location accesss",
-            description: "For successful campaigns Centro collects location data from the time you’re logged in – you won’t be tracked when you logout",
-            rules: {
-                locationAccess: {
-                    sameAs: helpers.withMessage("You will need to enable location access to continue", sameAs(true))
-                }
-            }
-        },
-        {
-            title: "Bluetooth access",
-            description: "For successful campaigns Centro collects surrounding Bluetooth signals from the time you’re logged in – you won’t be tracked when you logout",
-            rules: {
-                bluetoothAccess: {
-                    sameAs: helpers.withMessage("You will need to enable Bluetooth access to continue", sameAs(true))
-                }
-            }
-        }
-    ]
+    coords: [],
+    accessToken: import.meta.env.VITE_APP_MAPBOX_ACCESS_TOKEN,
+    mapStyle: "mapbox://styles/mapbox/basic-v10",
+    mapbox: null,
+    access: {
+        bluetooth: {},
+        location: {},
+    }
 });
 
-let $v = useVuelidate(state.steps[state.step].rules, state.form);
+const campaign: any = campaignStore.campaign;
 
-function onRequestOtp() {
-    console.log('onRequestOtp');
+function onMapLoaded() {
+
 }
 
-async function onLogin() {
-    console.log('onLogin');
-    window.localStorage.setItem('onboarded', true);
-    window.localStorage.setItem('loginDetails', JSON.stringify(state.form));
-    window.localStorage.setItem('account', JSON.stringify({
-        Name: 'John Doe',
-        LocaionAccess: true,
-        BluetoothAccess: true,
-        Phone: state.form.phone
-    }));
-    window.localStorage.setItem('campaignDetails', JSON.stringify({
-        Campaign_name: 'Go Digital With Digicel',
-        Brand_name: 'Digicel',
-        Brand_id: '123456789',
-        Start_Date: '2021-09-01',
-        End_Date: '2021-09-30',
-    }));
-}
-
-/**
- * On next step
- */
-async function onNextStep() {
-    const validated = await $v.value.$validate();;
-    console.log("Validating", validated);
-    if (validated) {
-        switch (state.step) {
-            case 0:
-                state.step = 1;
-                break;
-            case 1:
-                state.step = 2;
-                break;
-            case 2:
-                state.step = 3;
-                break;
-
-            default:
-                await onLogin();
-                break;
-        }
-    }
-    $v = useVuelidate(state.steps[state.step].rules, state.form);
-}
-
-onMounted(() => {
+onMounted(async () => {
+    state.mapbox = Mapbox;
+    state.access.location = await onRequestLocationAccess();
+    state.access.bluetooth = await onRequestBluetoothAccess();
 });
 </script>
 <template>
-    <v-row>
+    <v-row id="home-container">
         <v-col>
-            <h1 class="text-center mt-12">{{ state.steps[state.step].title }}</h1>
-            <p
-                class="text-center mt-4"
-                v-html="state.steps[state.step].description"
-            ></p>
-            <v-form class="mt-12">
-                <v-row>
-                    <v-col v-if="state.step === 0">
-                        <v-text-field
-                            v-model="state.form.phone"
-                            required
-                            class="rounded-lg"
-                            variant="outlined"
-                            placeholder="WhatsApp Number"
-                            :error-messages="$v.phone.$errors.map(e => e.$message)"
-                            @input="$v.phone.$touch"
-                            @blur="$v.phone.$touch"
-                        />
-                        <v-btn
-                            block
-                            class="mb-3 brand-button"
-                            variant="flat"
-                            rounded="xl"
-                            size="x-large"
-                            :disabled="state.isLoading || !state.form.phone | !state.form.terms"
-                            :loading="state.isLoading"
-                            @click="onNextStep"
-                        >Next</v-btn>
-                        <v-checkbox
-                            v-model="state.form.terms"
-                            required
-                            class="text-caption"
-                            label="I understand how Standard Audience Reach works and enabled bluetooth scanning"
-                            :error-messages="$v.terms.$errors.map(e => e.$message)"
-                            @input="$v.terms.$touch"
-                            @blur="$v.terms.$touch"
-                        />
-                    </v-col>
-                    <v-col
-                        v-else-if="state.step === 1"
-                        class="pt-0"
-                    >
-                        <div class="text-center mb-6">
-                            <a
-                                class="font-weight-bold text-center"
-                                @click="state.step = 0"
-                            >Change WhatsApp number</a>
-                        </div>
-                        <v-text-field
-                            v-model="state.form.otp"
-                            variant="outlined"
-                            placeholder="OTP 6 digit code"
-                            :error-messages="$v.otp?.$errors.map(e => e.$message)"
-                            @blur="$v.otp?.$touch"
-                            @input="$v.otp?.$touch"
-                        />
-                        <v-btn
-                            block
-                            class="mb-3 brand-button"
-                            variant="flat"
-                            rounded="xl"
-                            size="x-large"
-                            :disabled="state.isLoading || !state.form.otp"
-                            :loading="state.isLoading"
-                            @click="onNextStep"
-                        >Next</v-btn>
-                        <p>
-                            Didn’t get a code? <a
-                                class="font-weight-bold"
-                                variant="plain"
-                                @click="onRequestOtp"
-                            >Resend</a>
-                        </p>
-                    </v-col>
-                    <v-col v-else-if="state.step === 2">
-                        <v-btn
-                            block
-                            class="mb-3 brand-button"
-                            variant="flat"
-                            rounded="xl"
-                            size="x-large"
-                            :disabled="state.isLoading"
-                            :loading="state.isLoading"
-                            @click="onNextStep"
-                        >Give access to location</v-btn>
-                        <v-alert
-                            v-if="$v.locationAccess?.$errors.length"
-                            type="warning"
-                            variant="tonal"
+            <v-card class="campaign ma-2 mt-4">
+                <v-card-text class="text-center">
+                    <h2>{{ campaign.Campaign_name }}</h2>
+                    <p class="my-1">{{ campaign.Brand_name }}&nbsp;&bullet;&nbsp;ID{{ campaign.Brand_id }}</p>
+                    <p class="my-1">Start {{ campaign.Start_Date }}&nbsp;&bullet;&nbsp;End {{ campaign.End_Date }}</p>
+                    <v-row class="mt-2 px-0">
+                        <v-col
+                            class="px-0"
+                            cols="6"
                         >
-                            <p
-                                v-for="error in $v.locationAccess.$errors"
-                                :key="error"
-                            >{{ error.$message }}</p>
-                        </v-alert>
-                    </v-col>
-                    <v-col v-else-if="state.step === 3">
-                        <v-btn
-                            block
-                            class="mb-3 brand-button"
-                            variant="flat"
-                            rounded="xl"
-                            size="x-large"
-                            :disabled="state.isLoading"
-                            :loading="state.isLoading"
-                            @click="onNextStep"
-                        >Give access to Bluetooth</v-btn>
-                        <v-alert
-                            v-if="$v.bluetoothAccess?.$errors.length"
-                            type="warning"
-                            variant="tonal"
+                            <v-btn
+                                variant="flat"
+                                size="small"
+                            >
+                                <v-icon class="mr-2">mdi-crosshairs-gps</v-icon>
+                                Location {{ state.access.location.isEnabled ? 'On' : 'Off' }}
+                                <v-icon
+                                    class="ml-2"
+                                    :color="state.access.location.isEnabled ? '#03D025' : 'red'"
+                                >mdi-circle</v-icon>
+                            </v-btn>
+                        </v-col>
+                        <v-col
+                            class="px-0"
+                            cols="6"
                         >
-                            <p
-                                v-for="error in $v.bluetoothAccess.$errors"
-                                :key="error"
-                            >{{ error.$message }}</p>
-                        </v-alert>
-                    </v-col>
-                </v-row>
-                <HowItWorks style="bottom: 40px" />
-            </v-form>
+                            <v-btn
+                                variant="flat"
+                                size="small"
+                            >
+                                <v-icon class="mr-2">mdi-bluetooth</v-icon>
+                                Bluetooth {{ state.access.bluetooth.isEnabled ? 'On' : 'Off' }}
+                                <v-icon
+                                    class="ml-2"
+                                    :color="state.access.bluetooth.isEnabled ? '#03D025' : 'red'"
+                                >mdi-circle</v-icon>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+            <VMap
+                :accessToken="state.accessToken"
+                :mapStyle="state.mapStyle"
+            >
+                <!-- <VControlGeolocate position="bottom-right" /> -->
+                <!-- <VControlNavigation position="bottom-right" /> -->
+            </VMap>
+            <HowItWorks style="bottom: 40px" />
         </v-col>
     </v-row>
 </template>
 <style scopes lang="scss">
+#home-container {
+    height: calc(100vh - 120px);
+    width: 100vw;
+}
+
 .v-field__outline {
     border: 1px solid #000;
     border-radius: 100px !important;
@@ -249,5 +116,13 @@ onMounted(() => {
     .v-field__outline__end {
         border: none !important;
     }
+}
+
+.campaign {
+    right: 10px;
+    left: 10px;
+    position: fixed;
+    border-radius: 8px;
+    border: 1px solid #121212;
 }
 </style>

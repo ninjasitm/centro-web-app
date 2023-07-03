@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, type Ref } from 'vue';
+import { useGeolocation, useBluetooth } from '@vueuse/core';
 
 /** Global Store */
 const useGlobalStore = defineStore('global', () => {
@@ -49,7 +50,58 @@ const useGlobalStore = defineStore('global', () => {
     message.value = msg;
   }
 
-  return { loading, progress, message, setLoading, setProgress, setMessage };
+  /**
+   * Request bluetooth access
+   */
+  async function onRequestBluetoothAccess(): any {
+    console.log('onRequestBluetooth');
+
+    const {
+      isSupported,
+      isConnected,
+      device,
+      requestDevice,
+      server,
+    } = useBluetooth({
+      acceptAllDevices: true,
+    });
+
+    if (!isConnected) {
+      await requestDevice();
+    }
+
+    return {
+      isSupported,
+      isEnabled: isConnected,
+      isConnected,
+      device,
+      requestDevice,
+      server,
+    };
+  }
+
+  /**
+   *
+   * @returns Request location access
+   */
+  async function onRequestLocationAccess(): any {
+    console.log('onRequestLocationAccess');
+    const { coords, locatedAt, error, resume, pause } = useGeolocation();
+    const permissionStatus = await navigator?.permissions?.query({ name: 'geolocation' });
+
+    return {
+      isEnabled: permissionStatus?.state === 'granted',
+      coords,
+      locatedAt,
+      error,
+      resume,
+      pause,
+    };
+  }
+
+  return {
+    loading, progress, message, setLoading, setProgress, setMessage, onRequestBluetoothAccess, onRequestLocationAccess
+  };
 });
 
 export default useGlobalStore;

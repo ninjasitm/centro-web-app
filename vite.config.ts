@@ -7,6 +7,7 @@ import { defineConfig, type UserConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { checker } from 'vite-plugin-checker';
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify';
+import { viteRequire } from 'vite-require';
 
 import pkg from './package.json';
 
@@ -39,7 +40,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
       // https://github.com/fi3ework/vite-plugin-checker
       checker({
         typescript: true,
-        vueTsc: true,
+        vueTsc: false,
         eslint: {
           // for example, lint .ts and .tsx
           lintCommand: 'eslint "./src/**/*.{ts,tsx,vue}"',
@@ -49,6 +50,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
           lintCommand: 'stylelint ./src/**/*.{css,scss,vue}',
         },
       }),
+      viteRequire(),
     ],
     // https://vitejs.dev/config/server-options.html
     server: {
@@ -94,11 +96,11 @@ export default defineConfig(({ command, mode }): UserConfig => {
           plugins: [
             mode === 'analyze'
               ? // rollup-plugin-visualizer
-                // https://github.com/btd/rollup-plugin-visualizer
-                visualizer({
-                  open: true,
-                  filename: 'dist/stats.html',
-                })
+              // https://github.com/btd/rollup-plugin-visualizer
+              visualizer({
+                open: true,
+                filename: 'dist/stats.html',
+              })
               : undefined,
           ],
         },

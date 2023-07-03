@@ -2,60 +2,76 @@
 import { reactive, computed } from 'vue';
 import IconUp from '../assets/arrow-up.svg';
 import IconDown from '../assets/arrow-down.svg';
+import { useConfig } from '@/store';
+
+const configStore = useConfig();
 
 const state = reactive({
     show: false,
-    icon: computed(() => state.show ? IconDown : IconUp),
+    icon: computed(() => (state.show ? IconDown : IconUp)),
     howItWorksItems: [
         {
             title: 'Bluetooth scanning',
-            description: 'Visit this link to open a new tab and enable “Experimental Web Platform Features”',
+            description:
+                'Visit this link to open a new tab and enable “Experimental Web Platform Features”',
             icon: 'mdi-bluetooth',
         },
         {
             title: 'Driver login',
-            description: 'Use your WhatsApp number to login – an OTP will be sent via SMS to continue',
-            icon: 'mdi-cellphone'
+            description:
+                'Use your WhatsApp number to login – an OTP will be sent via SMS to continue',
+            icon: 'mdi-cellphone',
         },
         {
             title: 'Device permissions',
-            description: 'Grant access to your device’s GPS location and Bluetooth while you’re on this website',
-            icon: 'mdi-lock-open-outline'
+            description:
+                'Grant access to your device’s GPS location and Bluetooth while you’re on this website',
+            icon: 'mdi-lock-open-outline',
         },
         {
             title: 'Drive reach',
-            description: 'While you drive stay logged in and allow Google Chrome to run in the background for tracking',
-            icon: 'mdi-car'
-        }
-    ]
+            description:
+                'While you drive stay logged in and allow Google Chrome to run in the background for tracking',
+            icon: 'mdi-car',
+        },
+    ],
 });
 </script>
 <template>
     <v-card
         id="how-it-works"
+        :color="configStore.theme ? 'inherit' : '#f0f0f0'"
         :class="{
             'mb-4': true,
             'elevation-0': true,
-            open: state.show
+            open: state.show,
         }"
     >
-        <v-card-title class="text-center pt-6"><v-btn
+        <v-card-title class="text-center pt-6">
+            <v-btn
                 size="x-large"
-                class="ml-4 text-h5 font-weight-black"
+                class="ml-4 text-h5 font-weight-bold"
                 variant="plain"
                 @click="state.show = !state.show"
-            >How it works <v-img
+            >
+                How it works
+                <v-img
                     width="40"
                     height="40"
                     :class="{
                         'ml-3': true,
-                        'open': state.show
+                        open: state.show,
                     }"
                     :src="IconUp"
-                ></v-img></v-btn></v-card-title>
+                ></v-img>
+            </v-btn>
+        </v-card-title>
         <v-card-text>
             <v-fade-transition>
-                <p v-show="!state.show">Standard Audience Reach is in beta and can only be accessed on Android devices using Google Chrome</p>
+                <p v-show="!state.show">
+                    Standard Audience Reach is in beta and can only be accessed on Android
+                    devices using Google Chrome
+                </p>
             </v-fade-transition>
             <v-fade-transition>
                 <v-list
@@ -73,7 +89,7 @@ const state = reactive({
                             {{ item.title }}
                         </v-list-item-title>
                         <v-list-item-subtitle>
-                            <div v-html="item.description"></div>
+                            <div v-html="item.description" />
                         </v-list-item-subtitle>
                     </v-list-item>
                 </v-list>
@@ -89,9 +105,9 @@ const state = reactive({
     right: 0;
     border-top-left-radius: 32px;
     border-top-right-radius: 32px;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.300s ease-in-out;
+    height: 138px;
     min-height: 1px;
-    background-color: #F0F0F0;
 
     &.open {
         min-height: 508px;
@@ -99,9 +115,8 @@ const state = reactive({
 
     .v-list {
         .v-list-item {
-            color: #343434;
             font-size: 12px;
-            font-family: Inter;
+            font-family: 'Inter';
             font-style: normal;
             font-weight: 400;
             line-height: 150%;
